@@ -1,0 +1,96 @@
+<html lang="en">
+<meta charset="UTF-8">
+<script src="https://apis.google.com/js/api.js"></script>
+
+ <script >
+ 
+
+  function authenticate() {
+  
+    return gapi.auth2.getAuthInstance()
+        .signIn({scope: "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file"})
+        .then(function() { console.log("Sign-in successful"); },
+              function(err) { console.error("Error signing in", err); });
+  }
+  function loadClient() {
+  var k= document.getElementById('key').value
+  console.log(k)
+    gapi.client.setApiKey(k);
+    return gapi.client.load("https://content.googleapis.com/discovery/v1/apis/drive/v3/rest")
+        .then(function() { console.log("GAPI client loaded for API"); },
+              function(err) { console.error("Error loading GAPI client for API", err); });
+  }
+ 
+  function execute() {
+    return gapi.client.drive.comments.create({
+      "fileId": "1WtAAEXXzU9TepTlnWc73gVQjVtIw95NP",
+      "fields": "*",
+      "resource": {
+        "content": "Nitin is superrrr cute"
+      }
+    })  
+
+        .then(function(response) {
+               
+                console.log("Response::", response);
+              },
+              function(err) { console.error("Execute error", err); });
+			  gapi.client.load('drive', 'v2', retrieveComments());
+
+  }
+  
+function retrieveComments() {
+
+    printComment('1WtAAEXXzU9TepTlnWc73gVQjVtIw95NP','*');
+}
+function printComment(fileId,fields) {
+    var request = gapi.client.drive.comments.list({
+        'fileId': fileId,
+		'fields':'*',
+		
+    });
+	//console.log('comments::'+ request.comments[0].content);
+    request.execute(function (resp) {
+        if (!resp.error) {
+		    console.log('Kind: ' + resp.kind);
+			console.log('token::'+ resp.nextPageToken);
+			console.log('selfLink::'+ resp.selfLink);
+			console.log('nextLink::'+ resp.nextLink);
+			for ( i=0;i< resp.comments.length;i++)
+				{console.log('comments::'+ resp.comments[i].content);}
+			
+		/*for (i=0;i<resp.items.length;i++)
+         {		
+            console.log('Modified Date: ' + resp.items[i].modifiedDate);
+
+
+            console.log('Content: ' + resp.items[i].content);
+			console.log('ContentHTML'+ resp.items[i].htmlContent);console.log('items::', resp.selfLink)
+		  }	*/
+        } else {
+            console.log('Error code: ' + resp.error.code);
+            console.log('Error message: ' + resp.error.message);
+            // More error information can be retrieved with      resp.error.errors.
+        }
+
+    });
+}
+
+  
+
+  
+
+  
+
+ 
+  
+  gapi.load("client:auth2", function() {
+    gapi.auth2.init({client_id: "603370289350-mtovi8l1md071chibkj4of5jf503tco6.apps.googleusercontent.com"});
+  });
+</script>
+<div class="g-signin2"></div>
+ <input type="text" id="key" name="key"><br><br>
+<button onclick="authenticate().then(loadClient)">authorize and load</button>
+<button onclick="execute()">execute</button>
+<button onclick="retrieveComments('1WtAAEXXzU9TepTlnWc73gVQjVtIw95NP')">retrieve</button>
+</html>
